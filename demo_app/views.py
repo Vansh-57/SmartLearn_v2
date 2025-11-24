@@ -432,12 +432,12 @@ def check_auth(request):
 
 
 # ============================================
-# AI-POWERED GENERATION ENDPOINTS - FIXED
+# AI-POWERED GENERATION ENDPOINTS - FULLY FIXED
 # ============================================
 
 @csrf_exempt
 def generate_flashcards_endpoint(request):
-    """AI-powered flashcard generation - FIXED"""
+    """AI-powered flashcard generation - BULLETPROOF VERSION"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -447,26 +447,44 @@ def generate_flashcards_endpoint(request):
             print(f"🔵 Flashcard request - Topic: '{topic}', Content length: {len(content)}")
             
             if not topic:
+                print("❌ Missing topic")
                 return JsonResponse({'error': 'Missing topic'}, status=400)
             
             if not content:
+                print("❌ Missing content")
                 return JsonResponse({'error': 'Missing content'}, status=400)
             
-            # Call AI function
-            flashcards = generate_flashcards_ai(topic, content)
+            print(f"🔵 Calling generate_flashcards_ai...")
             
-            if flashcards:
-                print(f"✅ Flashcards generated successfully")
-                return JsonResponse({'success': True, 'flashcards': flashcards})
+            # ✅ Call AI function - returns JSON string
+            flashcards_json = generate_flashcards_ai(topic, content)
+            
+            print(f"🔵 AI returned: {type(flashcards_json)}")
+            
+            if flashcards_json:
+                try:
+                    # ✅ Parse to validate, then send back as string
+                    flashcards_list = json.loads(flashcards_json)
+                    print(f"✅ Generated {len(flashcards_list)} flashcards")
+                    
+                    # ✅ Return the JSON string directly
+                    return JsonResponse({
+                        'success': True, 
+                        'flashcards': flashcards_json  # Send as JSON string
+                    })
+                    
+                except json.JSONDecodeError as e:
+                    print(f"❌ JSON validation failed: {e}")
+                    return JsonResponse({'error': 'Invalid JSON from AI'}, status=500)
             else:
-                print(f"❌ Flashcard generation returned None")
-                return JsonResponse({'error': 'Flashcard generation failed - AI returned no data'}, status=500)
+                print(f"❌ AI returned None")
+                return JsonResponse({'error': 'Flashcard generation failed'}, status=500)
                 
         except json.JSONDecodeError as e:
-            print(f"❌ JSON decode error: {e}")
+            print(f"❌ Request JSON decode error: {e}")
             return JsonResponse({'error': 'Invalid JSON in request'}, status=400)
         except Exception as e:
-            print(f"❌ Error in flashcard endpoint: {e}")
+            print(f"❌ Flashcard endpoint error: {e}")
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
     
@@ -475,7 +493,7 @@ def generate_flashcards_endpoint(request):
 
 @csrf_exempt
 def generate_mcqs_endpoint(request):
-    """AI-powered MCQ generation - FIXED"""
+    """AI-powered MCQ generation - BULLETPROOF VERSION"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -485,26 +503,58 @@ def generate_mcqs_endpoint(request):
             print(f"🔵 MCQ request - Topic: '{topic}', Content length: {len(content)}")
             
             if not topic:
+                print("❌ Missing topic")
                 return JsonResponse({'error': 'Missing topic'}, status=400)
             
             if not content:
+                print("❌ Missing content")
                 return JsonResponse({'error': 'Missing content'}, status=400)
             
-            # Call AI function
-            mcqs = generate_mcqs_ai(topic, content)
+            print(f"🔵 Calling generate_mcqs_ai...")
             
-            if mcqs:
-                print(f"✅ MCQs generated successfully")
-                return JsonResponse({'success': True, 'mcqs': mcqs})
+            # ✅ Call AI function - returns JSON string
+            mcqs_json = generate_mcqs_ai(topic, content)
+            
+            print(f"🔵 AI returned: {type(mcqs_json)}")
+            
+            if mcqs_json:
+                try:
+                    # ✅ Parse to validate, then send back as string
+                    mcqs_list = json.loads(mcqs_json)
+                    print(f"✅ Generated {len(mcqs_list)} MCQs")
+                    
+                    # ✅ Validate MCQ structure
+                    for mcq in mcqs_list:
+                        if not all(k in mcq for k in ['q', 'opts', 'ans']):
+                            print(f"⚠️ Invalid MCQ structure: {mcq}")
+                            return JsonResponse({'error': 'Invalid MCQ structure'}, status=500)
+                        
+                        if len(mcq['opts']) != 4:
+                            print(f"⚠️ MCQ doesn't have 4 options")
+                            return JsonResponse({'error': 'MCQ must have 4 options'}, status=500)
+                        
+                        if not (0 <= mcq['ans'] <= 3):
+                            print(f"⚠️ Invalid answer index: {mcq['ans']}")
+                            return JsonResponse({'error': 'Invalid answer index'}, status=500)
+                    
+                    # ✅ Return the JSON string directly
+                    return JsonResponse({
+                        'success': True, 
+                        'mcqs': mcqs_json  # Send as JSON string
+                    })
+                    
+                except json.JSONDecodeError as e:
+                    print(f"❌ JSON validation failed: {e}")
+                    return JsonResponse({'error': 'Invalid JSON from AI'}, status=500)
             else:
-                print(f"❌ MCQ generation returned None")
-                return JsonResponse({'error': 'MCQ generation failed - AI returned no data'}, status=500)
+                print(f"❌ AI returned None")
+                return JsonResponse({'error': 'MCQ generation failed'}, status=500)
                 
         except json.JSONDecodeError as e:
-            print(f"❌ JSON decode error: {e}")
+            print(f"❌ Request JSON decode error: {e}")
             return JsonResponse({'error': 'Invalid JSON in request'}, status=400)
         except Exception as e:
-            print(f"❌ Error in MCQ endpoint: {e}")
+            print(f"❌ MCQ endpoint error: {e}")
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
     
@@ -513,7 +563,7 @@ def generate_mcqs_endpoint(request):
 
 @csrf_exempt
 def extract_keywords_endpoint(request):
-    """AI-powered keyword extraction - FIXED"""
+    """AI-powered keyword extraction - BULLETPROOF VERSION"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -523,26 +573,44 @@ def extract_keywords_endpoint(request):
             print(f"🔵 Keyword request - Topic: '{topic}', Content length: {len(content)}")
             
             if not topic:
+                print("❌ Missing topic")
                 return JsonResponse({'error': 'Missing topic'}, status=400)
             
             if not content:
+                print("❌ Missing content")
                 return JsonResponse({'error': 'Missing content'}, status=400)
             
-            # Call AI function
-            keywords = extract_keywords_ai(topic, content)
+            print(f"🔵 Calling extract_keywords_ai...")
             
-            if keywords:
-                print(f"✅ Keywords extracted successfully")
-                return JsonResponse({'success': True, 'keywords': keywords})
+            # ✅ Call AI function - returns JSON string
+            keywords_json = extract_keywords_ai(topic, content)
+            
+            print(f"🔵 AI returned: {type(keywords_json)}")
+            
+            if keywords_json:
+                try:
+                    # ✅ Parse to validate, then send back as string
+                    keywords_list = json.loads(keywords_json)
+                    print(f"✅ Extracted {len(keywords_list)} keywords")
+                    
+                    # ✅ Return the JSON string directly
+                    return JsonResponse({
+                        'success': True, 
+                        'keywords': keywords_json  # Send as JSON string
+                    })
+                    
+                except json.JSONDecodeError as e:
+                    print(f"❌ JSON validation failed: {e}")
+                    return JsonResponse({'error': 'Invalid JSON from AI'}, status=500)
             else:
-                print(f"❌ Keyword extraction returned None")
-                return JsonResponse({'error': 'Keyword extraction failed - AI returned no data'}, status=500)
+                print(f"❌ AI returned None")
+                return JsonResponse({'error': 'Keyword extraction failed'}, status=500)
                 
         except json.JSONDecodeError as e:
-            print(f"❌ JSON decode error: {e}")
+            print(f"❌ Request JSON decode error: {e}")
             return JsonResponse({'error': 'Invalid JSON in request'}, status=400)
         except Exception as e:
-            print(f"❌ Error in keyword endpoint: {e}")
+            print(f"❌ Keyword endpoint error: {e}")
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
     
